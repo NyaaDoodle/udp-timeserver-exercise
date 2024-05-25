@@ -12,17 +12,29 @@ TimeServer::TimeServer() {
 	initStringToUTCOffset();
 }
 
-int TimeServer::run() {
+void TimeServer::run() {
+	initialize_dll();
+	make_socket();
+	bind_socket();
+	server_loop();
+	close_server();
+}
+
+void TimeServer::initialize_dll() {
 	if (NO_ERROR != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Time Server: Error at WSAStartup()\n";
-		return - 1;
+		exit(-1);
 	}
+}
+void TimeServer::make_socket() {
 	m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (INVALID_SOCKET == m_socket) {
 		std::cout << "Time Server: Error at socket(): " << WSAGetLastError() << std::endl;
 		WSACleanup();
-		return -2;
+		exit(-2);
 	}
+}
+void TimeServer::bind_socket() {
 	serverService.sin_family = AF_INET;
 	serverService.sin_addr.s_addr = INADDR_ANY;
 	serverService.sin_port = htons(TIME_PORT);
@@ -30,10 +42,10 @@ int TimeServer::run() {
 		std::cout << "Time Server: Error at bind(): " << WSAGetLastError() << std::endl;
 		closesocket(m_socket);
 		WSACleanup();
-		return -3;
+		exit(-3);
 	}
-	client_addr_len = sizeof(client_addr);
-	bytesSent = bytesRecv = 0;
+}
+void TimeServer::server_loop() {
 	std::cout << "Time Server: Wait for clients' requests.\n";
 	while (true) {
 		bytesRecv = recvfrom(m_socket, recvBuff, 255, 0, &client_addr, &client_addr_len);
@@ -41,24 +53,28 @@ int TimeServer::run() {
 			std::cout << "Time Server: Error at recvfrom(): " << WSAGetLastError() << std::endl;
 			closesocket(m_socket);
 			WSACleanup();
-			return -4;
+			exit(-4);
 		}
 		recvBuff[bytesRecv] = '\0';
 		std::cout << "Time Server: Recieved: " << bytesRecv << " bytes of \"" << recvBuff << "\" message.\n";
-		strcpy(sendBuff, select_action(recvBuff).c_str());
-		bytesSent = sendto(m_socket, sendBuff, (int)strlen(sendBuff), 0, (const sockaddr*)&client_addr, client_addr_len);
-		if (SOCKET_ERROR == bytesSent) {
-			std::cout << "Time Server: Error at sendto(): " << WSAGetLastError() << std::endl;
-			closesocket(m_socket);
-			WSACleanup();
-			return -5;
-		}
-		std::cout << "Time Server: Sent: " << bytesSent << "\\" << strlen(sendBuff) << " bytes of \"" << sendBuff << "\" message.\n";
+		send_string_message("");
 	}
+}
+void TimeServer::send_string_message(const std::string message) {
+	strcpy(sendBuff, select_action(recvBuff).c_str());
+	bytesSent = sendto(m_socket, sendBuff, (int)strlen(sendBuff), 0, (const sockaddr*)&client_addr, client_addr_len);
+	if (SOCKET_ERROR == bytesSent) {
+		std::cout << "Time Server: Error at sendto(): " << WSAGetLastError() << std::endl;
+		closesocket(m_socket);
+		WSACleanup();
+		exit(-5);
+	}
+	std::cout << "Time Server: Sent: " << bytesSent << "\\" << strlen(sendBuff) << " bytes of \"" << sendBuff << "\" message.\n";
+}
+void TimeServer::close_server() {
 	std::cout << "Time Server: Closing Connection.\n";
 	closesocket(m_socket);
 	WSACleanup();
-	return 0;
 }
 
 std::string TimeServer::select_action(const char* recv_message) {

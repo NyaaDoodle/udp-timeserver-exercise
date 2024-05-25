@@ -17,13 +17,14 @@ enum class City { Doha, Prague, NewYork, Berlin };
 class TimeServer {
 public:
 	TimeServer();
-	int run();
+	void run();
 private:
 	WSAData wsaData;
 	SOCKET m_socket;
 	sockaddr_in serverService;
 	sockaddr client_addr;
-	int client_addr_len, bytesSent, bytesRecv;
+	int client_addr_len = sizeof(client_addr);
+	int bytesSent = 0, bytesRecv = 0;
 	char sendBuff[BUFFER_SIZE], recvBuff[BUFFER_SIZE];
 	char buf[BUFFER_SIZE];
 	time_t timer;
@@ -31,6 +32,12 @@ private:
 	std::map<std::string, ServerAction> stringToServerAction;
 	std::map<std::string, int> stringToUTCOffset;
 
+	void initialize_dll();
+	void make_socket();
+	void bind_socket();
+	void server_loop();
+	void send_string_message(const std::string message);
+	void close_server();
 	std::string select_action(const char *recv_message);
 	// Time related actions
 	std::string get_time();
