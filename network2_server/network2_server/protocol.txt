@@ -1,0 +1,12 @@
+"time" - GetTime
+"time no date" - GetTimeWithoutDate
+"time unix" - GetTimeSinceEpoch
+"time bench" - GetClientToServerTickCount
+"time no date no seconds" - GetTimeWithoutDateOrSeconds
+"time only year" - GetYear
+"time only month only day" - GetMonthAndDay
+"time only seconds relativeto currmonth" - GetSecondsSinceBeginningOfMonth
+"time only week relativeto curryear" - GetWeekOfYear
+"time isdst" - GetDaylightSavings
+"time no date at <city>" - GetTimeWithoutDateInCity, <city> specifying name of desired city.
+"time lap" - MeasureTimeLap
