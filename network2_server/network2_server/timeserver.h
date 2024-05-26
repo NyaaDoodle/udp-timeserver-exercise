@@ -38,7 +38,7 @@ private:
 	void server_loop();
 	void listen_and_receive_message(const bool is_silent = false);
 	void send_string_message(const std::string message, const bool is_silent = false);
-	void select_action(const std::string recv_message);
+	void select_action(std::string recv_message);
 	void close_server();
 	// Time related actions
 	std::string get_time();
@@ -50,12 +50,13 @@ private:
 	std::string get_seconds_from_month_beginning();
 	std::string get_week_of_year();
 	std::string get_if_daylight_savings();
-	std::string get_time_no_date_specified_city(const char* city);
+	std::string get_time_no_date_specified_city(const std::string city);
 	// Client-server connection related actions
 	std::string get_client_server_tick_count();
 	std::string measure_time_lap();
 	// Helper functions
 	std::string strftime_by_format(const char* format);
+	std::string check_if_to_cut_message(std::string& message);
 	void initStringToServerAction();
 	void initStringToUTCOffset();
 };

@@ -3,6 +3,8 @@
 #include "timeclient.h"
 #include <iostream>
 #include <string.h>
+#include <algorithm>
+#include <cctype>
 
 #define TIME_PORT	27015
 
@@ -68,6 +70,7 @@ void TimeClient::close_client() {
 	WSACleanup();
 }
 void TimeClient::main_menu() {
+	std::string message = "";
 	int user_input;
 	std::cout << "Enter a number to select your option:\n";
 	std::cout << "(1) Get time\n";
@@ -85,6 +88,7 @@ void TimeClient::main_menu() {
 	std::cout << "(13) Measure time lap\n";
 	std::cout << "(0) Exit client\n";
 	std::cin >> user_input;
+	std::cin.ignore(BUFFER_SIZE, '\n');
 	switch (user_input) {
 	case 0:
 		to_exit = true;
@@ -137,7 +141,9 @@ void TimeClient::main_menu() {
 		break;
 	case 12:
 		// TODO
-		send_string_message("time no date at");
+		message = "time no date at ";
+		message += select_city();
+		send_string_message(message);
 		expect_server_response();
 		break;
 	case 13:
@@ -148,5 +154,23 @@ void TimeClient::main_menu() {
 	default:
 		break;
 	}
+	std::cout << std::endl;
+}
+std::string TimeClient::select_city() {
+	std::string userInput;
+	std::cout << "Enter the name of the desired city:\n";
+	std::cout << "* Doha, Qatar\n";
+	std::cout << "* Prague, Czech Republic\n";
+	std::cout << "* New York, United States of America\n";
+	std::cout << "* Berlin, Germany\n";
+	std::cout << "Any city specified that is not on the list, UTC time will be returned.\n";
+	std::getline(std::cin, userInput);
+	return string_tolower(userInput);
 }
 
+std::string TimeClient::string_tolower(const std::string& str) {
+	std::string out_str = str;
+	std::transform(out_str.begin(), out_str.end(), out_str.begin(),
+		[](unsigned char c) { return std::tolower(c); });
+	return out_str;
+}

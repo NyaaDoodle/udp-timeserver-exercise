@@ -3,6 +3,8 @@
 #include <winsock2.h>
 #include <string>
 
+#define BUFFER_SIZE 256
+
 class TimeClient {
 public:
 	void run();
@@ -11,7 +13,7 @@ private:
 	SOCKET connSocket;
 	sockaddr_in server;
 	int bytesSent, bytesRecv;
-	char sendBuff[255], recvBuff[255];
+	char sendBuff[BUFFER_SIZE], recvBuff[BUFFER_SIZE];
 	bool to_exit = false;
 	void initialize_dll();
 	void make_socket();
@@ -20,4 +22,6 @@ private:
 	void expect_server_response(const bool is_silent = false);
 	void close_client();
 	void main_menu();
+	std::string select_city();
+	std::string string_tolower(const std::string& str);
 };

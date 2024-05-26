@@ -48,7 +48,7 @@ void TimeServer::bind_socket() {
 void TimeServer::server_loop() {
 	std::cout << "Time Server: Wait for clients' requests.\n";
 	while (true) {
-		listen_and_receive_message(true);
+		listen_and_receive_message();
 		select_action(recvBuff);
 	}
 }
@@ -78,8 +78,8 @@ void TimeServer::send_string_message(const std::string message, const bool is_si
 		std::cout << "Time Server: Sent: " << bytesSent << "\\" << strlen(sendBuff) << " bytes of \"" << sendBuff << "\" message.\n";
 	}
 }
-void TimeServer::select_action(const std::string recv_message) {
-	// (maybe struct?) std::string res_message = check_if_to_cut_message()
+void TimeServer::select_action(std::string recv_message) {
+	std::string input_section = check_if_to_cut_message(recv_message);
 	const auto itr = stringToServerAction.find(recv_message);
 	if (itr != stringToServerAction.end()) {
 		switch (itr->second) {
@@ -114,18 +114,18 @@ void TimeServer::select_action(const std::string recv_message) {
 			send_string_message(get_if_daylight_savings());
 			break;
 		case ServerAction::GetTimeWithoutDateInCity:
-			send_string_message(get_time_no_date_specified_city(""));
+			send_string_message(get_time_no_date_specified_city(input_section));
 			break;
 		case ServerAction::MeasureTimeLap:
 			send_string_message(measure_time_lap());
 			break;
 		default:
-			std::cout << "Command not supported...\n";
+			send_string_message("Command not supported...");
 			break;
 		}
 	}
 	else {
-		std::cout << "Command not supported.\n";
+		send_string_message("Command not supported.");
 	}
 }
 void TimeServer::close_server() {
@@ -179,7 +179,7 @@ std::string TimeServer::get_if_daylight_savings() {
 	sprintf(buf, "%d", timeinfo->tm_isdst);
 	return buf;
 }
-std::string TimeServer::get_time_no_date_specified_city(const char* city) {
+std::string TimeServer::get_time_no_date_specified_city(const std::string city) {
 	std::string message = "";
 	int utc_offset;
 	const auto itr = stringToUTCOffset.find(city);
@@ -192,7 +192,7 @@ std::string TimeServer::get_time_no_date_specified_city(const char* city) {
 	}
 	time(&timer);
 	timeinfo = gmtime(&timer);
-	sprintf(buf, "%2d:%02d:%02d", (timeinfo->tm_hour + utc_offset), (timeinfo->tm_min), (timeinfo->tm_sec));
+	sprintf(buf, "%d:%02d:%02d", (timeinfo->tm_hour + utc_offset), (timeinfo->tm_min), (timeinfo->tm_sec));
 	message += buf;
 	return message;
 }
@@ -250,4 +250,19 @@ void TimeServer::initStringToUTCOffset() {
 	stringToUTCOffset["prague"] = 2;
 	stringToUTCOffset["new york"] = -4;
 	stringToUTCOffset["berlin"] = 2;
+}
+std::string TimeServer::check_if_to_cut_message(std::string& message) {
+	constexpr int INPUT_SECTION_OFFSET = 4;
+	const char* SEARCH_EXPRESSION = " at ";
+	std::string temp;
+	size_t found = message.find(SEARCH_EXPRESSION);
+	if (found != std::string::npos && message.size() >= found + INPUT_SECTION_OFFSET) {
+		std::string temp = message.substr(0, found + INPUT_SECTION_OFFSET - 1);
+		std::string input_section = message.substr(found + INPUT_SECTION_OFFSET);
+		message = temp;
+		return input_section;
+	}
+	else {
+		return "";
+	}
 }
