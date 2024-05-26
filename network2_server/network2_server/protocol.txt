@@ -4,7 +4,7 @@
 "time bench" - GetClientToServerTickCount
 "time no date no seconds" - GetTimeWithoutDateOrSeconds
 "time only year" - GetYear
-"time only month only day" - GetMonthAndDay
+"time only month day" - GetMonthAndDay
 "time only seconds relativeto currmonth" - GetSecondsSinceBeginningOfMonth
 "time only week relativeto curryear" - GetWeekOfYear
 "time isdst" - GetDaylightSavings

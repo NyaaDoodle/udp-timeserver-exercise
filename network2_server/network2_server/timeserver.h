@@ -36,9 +36,10 @@ private:
 	void make_socket();
 	void bind_socket();
 	void server_loop();
-	void send_string_message(const std::string message);
+	void listen_and_receive_message(const bool is_silent = false);
+	void send_string_message(const std::string message, const bool is_silent = false);
+	void select_action(const std::string recv_message);
 	void close_server();
-	std::string select_action(const char *recv_message);
 	// Time related actions
 	std::string get_time();
 	std::string get_time_no_date();
