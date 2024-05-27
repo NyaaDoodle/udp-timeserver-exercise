@@ -117,7 +117,7 @@ void TimeServer::select_action(std::string recv_message) {
 			send_string_message(get_time_no_date_specified_city(input_section));
 			break;
 		case ServerAction::MeasureTimeLap:
-			send_string_message(measure_time_lap());
+			measure_time_lap();
 			break;
 		default:
 			send_string_message("Command not supported...");
@@ -201,28 +201,21 @@ std::string TimeServer::get_client_server_tick_count() {
 	sprintf(buf, "%d", GetTickCount());
 	return buf;
 }
-std::string TimeServer::measure_time_lap() {
+void TimeServer::measure_time_lap() {
 	constexpr int SECONDS_IN_THREE_MINUTES = 180;
-	strcpy(buf, "Lap timer started, send second request");
-	// send message
 	time(&timer);
 	time_t currtime;
 	time_t endtime = timer + SECONDS_IN_THREE_MINUTES;
-	while (currtime = time(&timer) < endtime) {
-		bytesRecv = recvfrom(m_socket, recvBuff, 255, 0, &client_addr, &client_addr_len);
-		if (SOCKET_ERROR == bytesRecv) {
-			std::cout << "Time Server: Error at recvfrom(): " << WSAGetLastError() << std::endl;
-			closesocket(m_socket);
-			WSACleanup();
-			return "-4";
-		}
-		recvBuff[bytesRecv] = '\0';
-		if (strcmp(recvBuff, "time lap")) {
+	bool timer_end = false;
+	send_string_message("Lap timer started, send second request");
+	while (((currtime = endtime - time(&timer)) < SECONDS_IN_THREE_MINUTES) && !timer_end) {
+		listen_and_receive_message();
+		if (strcmp(recvBuff, "time lap") == 0) {
 			sprintf(buf, "Time elapsed: %dsec", (int)currtime);
-			// send message
+			send_string_message(buf);
+			timer_end = true;
 		}
 	}
-	return "";
 }
 // Helper functions
 std::string TimeServer::strftime_by_format(const char* format) {

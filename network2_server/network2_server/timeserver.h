@@ -53,7 +53,7 @@ private:
 	std::string get_time_no_date_specified_city(const std::string city);
 	// Client-server connection related actions
 	std::string get_client_server_tick_count();
-	std::string measure_time_lap();
+	void measure_time_lap();
 	// Helper functions
 	std::string strftime_by_format(const char* format);
 	std::string check_if_to_cut_message(std::string& message);

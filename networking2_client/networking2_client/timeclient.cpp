@@ -140,7 +140,6 @@ void TimeClient::main_menu() {
 		expect_server_response();
 		break;
 	case 12:
-		// TODO
 		message = "time no date at ";
 		message += select_city();
 		send_string_message(message);
@@ -150,6 +149,10 @@ void TimeClient::main_menu() {
 		// TODO
 		send_string_message("time lap");
 		expect_server_response();
+		if (strcmp(recvBuff, "Lap timer started, send second request") == 0) {
+			send_string_message("time lap");
+			expect_server_response();
+		}
 		break;
 	default:
 		break;
