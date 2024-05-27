@@ -32,6 +32,7 @@ private:
 	std::map<std::string, ServerAction> stringToServerAction;
 	std::map<std::string, int> stringToUTCOffset;
 
+	// Internal server operations
 	void initialize_dll();
 	void make_socket();
 	void bind_socket();

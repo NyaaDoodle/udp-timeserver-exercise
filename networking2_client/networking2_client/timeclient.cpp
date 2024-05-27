@@ -5,6 +5,8 @@
 #include <string.h>
 #include <algorithm>
 #include <cctype>
+#include <vector>
+#include <Windows.h>
 
 #define TIME_PORT	27015
 
@@ -70,7 +72,6 @@ void TimeClient::close_client() {
 	WSACleanup();
 }
 void TimeClient::main_menu() {
-	std::string message = "";
 	int user_input;
 	std::cout << "Enter a number to select your option:\n";
 	std::cout << "(1) Get time\n";
@@ -94,71 +95,135 @@ void TimeClient::main_menu() {
 		to_exit = true;
 		break;
 	case 1:
-		send_string_message("time");
-		expect_server_response();
+		get_time();
 		break;
 	case 2:
-		send_string_message("time no date");
-		expect_server_response();
+		get_time_no_date();
 		break;
 	case 3:
-		send_string_message("time unix");
-		expect_server_response();
+		get_unix_time();
 		break;
 	case 4:
-		// TODO
-		send_string_message("time");
-		expect_server_response();
+		measure_delay_estimate();
 		break;
 	case 5:
-		// TODO
-		send_string_message("time");
-		expect_server_response();
+		measure_rtt();
 		break;
 	case 6:
-		send_string_message("time no date no seconds");
-		expect_server_response();
+		get_time_no_date_no_seconds();
 		break;
 	case 7:
-		send_string_message("time only year");
-		expect_server_response();
+		get_year();
 		break;
 	case 8:
-		send_string_message("time only month day");
-		expect_server_response();
+		get_month_day();
 		break;
 	case 9:
-		send_string_message("time only seconds relativeto currmonth");
-		expect_server_response();
+		get_seconds_from_month_beginning();
 		break;
 	case 10:
-		send_string_message("time only week relativeto curryear");
-		expect_server_response();
+		get_week_of_year();
 		break;
 	case 11:
-		send_string_message("time isdst");
-		expect_server_response();
+		get_if_daylight_savings();
 		break;
 	case 12:
-		message = "time no date at ";
-		message += select_city();
-		send_string_message(message);
-		expect_server_response();
+		get_time_no_date_specified_city();
 		break;
 	case 13:
-		// TODO
-		send_string_message("time lap");
-		expect_server_response();
-		if (strcmp(recvBuff, "Lap timer started, send second request") == 0) {
-			send_string_message("time lap");
-			expect_server_response();
-		}
+		measure_time_lap();
 		break;
 	default:
 		break;
 	}
 	std::cout << std::endl;
 }
+
+void TimeClient::get_time() {
+	send_string_message("time");
+	expect_server_response();
+}
+void TimeClient::get_time_no_date() {
+	send_string_message("time no date");
+	expect_server_response();
+}
+void TimeClient::get_unix_time() {
+	send_string_message("time unix");
+	expect_server_response();
+}
+void TimeClient::get_time_no_date_no_seconds() {
+	send_string_message("time no date no seconds");
+	expect_server_response();
+}
+void TimeClient::get_year() {
+	send_string_message("time only year");
+	expect_server_response();
+}
+void TimeClient::get_month_day() {
+	send_string_message("time only month day");
+	expect_server_response();
+}
+void TimeClient::get_seconds_from_month_beginning() {
+	send_string_message("time only seconds relativeto currmonth");
+	expect_server_response();
+}
+void TimeClient::get_week_of_year() {
+	send_string_message("time only week relativeto curryear");
+	expect_server_response();
+}
+void TimeClient::get_if_daylight_savings() {
+	send_string_message("time isdst");
+	expect_server_response();
+}
+void TimeClient::get_time_no_date_specified_city() {
+	std::string message = "";
+	message = "time no date at ";
+	message += select_city();
+	send_string_message(message);
+	expect_server_response();
+}
+
+void TimeClient::measure_delay_estimate() {
+	constexpr int BULK_COUNT = 100;
+	std::vector<long> ticks_vec;
+	long summed_tick_deltas = 0, delay_estimate;
+	for (int i = 0; i < BULK_COUNT; i++) {
+		send_string_message("time bench");
+	}
+	for (int i = 0; i < BULK_COUNT; i++) {
+		expect_server_response();
+		ticks_vec.push_back(atol(recvBuff));
+	}
+	for (int i = 0; i < ticks_vec.size() - 1; i++) {
+		summed_tick_deltas += ticks_vec[i + 1] - ticks_vec[i];
+	}
+	delay_estimate = summed_tick_deltas / (long)(ticks_vec.size() - 1);
+	std::cout << "Estimated delay time: " << delay_estimate << " ticks.\n";
+}
+void TimeClient::measure_rtt() {
+	constexpr int BULK_COUNT = 100;
+	long summed_tick_deltas = 0, average_rtt;
+	long start_tick_count, end_tick_count;
+	for (int i = 0; i < BULK_COUNT; i++) {
+		start_tick_count = GetTickCount();
+		send_string_message("time bench");
+		expect_server_response();
+		end_tick_count = GetTickCount();
+		summed_tick_deltas += end_tick_count - start_tick_count;
+	}
+	average_rtt = summed_tick_deltas / BULK_COUNT;
+	std::cout << "Average RTT: " << average_rtt << " ticks.\n";
+}
+
+void TimeClient::measure_time_lap() {
+	send_string_message("time lap");
+	expect_server_response();
+	if (strcmp(recvBuff, "Lap timer started, send second request") == 0) {
+		send_string_message("time lap");
+		expect_server_response();
+	}
+}
+
 std::string TimeClient::select_city() {
 	std::string userInput;
 	std::cout << "Enter the name of the desired city:\n";

@@ -205,15 +205,15 @@ void TimeServer::measure_time_lap() {
 	constexpr int SECONDS_IN_THREE_MINUTES = 180;
 	time(&timer);
 	time_t currtime;
-	time_t endtime = timer + SECONDS_IN_THREE_MINUTES;
-	bool timer_end = false;
+	time_t timer_start = time(&timer);
+	bool has_timer_ended = false;
 	send_string_message("Lap timer started, send second request");
-	while (((currtime = endtime - time(&timer)) < SECONDS_IN_THREE_MINUTES) && !timer_end) {
+	while (((currtime = time(&timer) - timer_start) < SECONDS_IN_THREE_MINUTES) && !has_timer_ended) {
 		listen_and_receive_message();
 		if (strcmp(recvBuff, "time lap") == 0) {
 			sprintf(buf, "Time elapsed: %dsec", (int)currtime);
 			send_string_message(buf);
-			timer_end = true;
+			has_timer_ended = true;
 		}
 	}
 }

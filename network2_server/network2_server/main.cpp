@@ -1,7 +1,7 @@
 #include "timeserver.h"
 
 int main(void) {
-	TimeServer ts;
-	ts.run();
+	TimeServer server;
+	server.run();
 	return 0;
 }
